@@ -1,0 +1,216 @@
+using System;
+using System.Windows.Forms;
+using System.Diagnostics;
+using PdfSharp;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf;
+using System.Data.SqlClient;
+using System.Data;
+
+namespace WindowsFormsApplication1
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string connetionString = null;
+                SqlConnection connection ;
+                SqlCommand command ;
+                SqlDataAdapter adapter = new SqlDataAdapter();
+                DataSet ds = new DataSet();
+                int i = 0;
+                string sql = null;
+                int yPoint = 0;
+                string pubname = null;
+                string city = null;
+                string state = null;
+
+                connetionString = "Data Source=YourServerName;Initial Catalog=pubs;User ID=sa;Password=zen412";
+                sql = "select pub_name,city,country from publishers";
+                connection = new SqlConnection(connetionString);
+                connection.Open();
+                command = new SqlCommand(sql, connection);
+                adapter.SelectCommand = command;
+                adapter.Fill(ds);
+                connection.Close();
+
+                PdfDocument pdf = new PdfDocument();
+                pdf.Info.Title = "Database to PDF";
+                PdfPage pdfPage = pdf.AddPage();
+                XGraphics graph = XGraphics.FromPdfPage(pdfPage);
+                XFont font = new XFont("Verdana", 20, XFontStyle.Regular );
+
+                yPoint = yPoint + 100;
+
+                for (i = 0; i < = ds.Tables[0].Rows.Count - 1; i++)
+                {
+                    pubname = ds.Tables[0].Rows[i].ItemArray[0].ToString ();
+                    city = ds.Tables[0].Rows[i].ItemArray[1].ToString();
+                    state = ds.Tables[0].Rows[i].ItemArray[2].ToString();
+                        
+                    graph.DrawString(pubname, font, XBrushes.Black, new XRect(40, yPoint, pdfPage.Width.Point, pdfPage.Height.Point), XStringFormats.TopLeft);
+
+                    graph.DrawString(city, font, XBrushes.Black, new XRect(280, yPoint, pdfPage.Width.Point, pdfPage.Height.Point), XStringFormats.TopLeft);
+
+                    graph.DrawString(state, font, XBrushes.Black, new XRect(420, yPoint, pdfPage.Width.Point, pdfPage.Height.Point), XStringFormats.TopLeft);
+
+                    yPoint = yPoint + 40;
+                }
+
+
+                string pdfFilename = "dbtopdf.pdf";
+                pdf.Save(pdfFilename);
+                Process.Start(pdfFilename);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+    }
+}
+
+
+============================================
+DOWNLOAD
+===========================================
+protected void GridView1_RowCommand(object sender, 
+    GridViewCommandEventArgs e)
+{
+    if (e.CommandName == "Download")
+    {
+        Response.Clear();
+        Response.ContentType = "application/octect-stream";
+        Response.AppendHeader("content-disposition", "filename=" 
+            + e.CommandArgument);
+        Response.TransmitFile(Server.MapPath("~/Data/") 
+            + e.CommandArgument);
+        Response.End();
+    }
+}
+
+
+
+
+==============================
+readonly javascript
+===========================
+<script type="text/javascript">
+        function doNotType() {
+            document.getElementById('<%= MyTextBox.ClientID %>').readOnly = "readonly";
+        }
+        window.onload = function () {
+            doNotType();
+        }
+</script>
+
+// TextBox in the body
+<asp:TextBox ID="MyTextBox" runat="server" Text="My Text" />
+
+==================================
+download button visibility in gridview
+====================================
+protected void gvData_OnRowDataBound(object sender, GridViewRowEventArgs e)
+            {
+                LinkButton lbClose = (LinkButton)e.Row.Cells[5].FindControl("lbClose");
+                LinkButton lbEdit = (LinkButton)e.Row.Cells[5].FindControl("lbEdit");
+                LinkButton lbDelete = (LinkButton)e.Row.Cells[5].FindControl("lbDelete");
+                LinkButton lbWrite = (LinkButton)e.Row.Cells[5].FindControl("lbWrite");
+                LinkButton lbRT = (LinkButton)e.Row.Cells[5].FindControl("lbRT");
+
+                if(e.Row.Cells[1].Text=="Dessert")
+                {
+                    lbClose.Visible = false;
+                    lbEdit.Visible = false;
+                    lbDelete.Visible = false;
+                }
+                else
+                {
+                    lbWrite.Visible = false;
+                    lbRT.Visible = false;
+                }
+            }
+
+==============================
+trigger
+=============================
+
+
+CREATE TRIGGER check_date ON Order_details 
+FOR UPDATE
+AS 
+IF (datepart(hour,'Time')< 12 )
+BEGIN
+update Order_details set timedelivery=DATEADD(day, 5,'Time') where timedelivery is null
+END
+else 
+begin
+update Order_details set timedelivery=DATEADD(day, 6,'Time') where timedelivery is null
+end
+
+========================================
+to make sql case sensitive
+======================================
+select username from userdetails 
+  where username COLLATE Latin1_General_CS_AS =@username and password COLLATE Latin1_General_CS_AS =@password
+
+========================================
+ajax Trigger
+==============================
+ <asp:UpdatePanel ID="UpdatePanel1" runat="server" UpdateMode="Conditional">
+               <ContentTemplate>
+                <asp:TextBox ID="iphoneXtext" runat="server" style=" height: 20px; width:20px;" onmouseover="readonly('iphoneXtext')" 
+                    ></asp:TextBox> 
+                    </ContentTemplate>
+                    <Triggers>
+                    <asp:AsyncPostBackTrigger ControlID="iphoneXpopok_btn" EventName="Click" />
+                    </Triggers>
+                   </asp:UpdatePanel>
+
+==========================================
+subhasish griedview problem
+==================================
+ Kundu, Subhasish (Cognizant): 
+protected void btnPauseSurvey_Click(object sender, EventArgs e)
+        {
+            Button btn1 = (Button)sender;
+            btn1.Enabled = false;
+            foreach (GridViewRow g in gvSurveyList.Rows)
+            {
+                Button bt = (Button)g.FindControl("btnResumeSurvey");
+                bt.Enabled = true;
+            }
+
+        } 
+=========================================================
+add data to gridview manualy
+========================================================
+private void SetInitialRow()
+    {
+        DataTable dt = new DataTable();
+        DataRow dr = null;
+        dt.Columns.Add(new DataColumn("RowNumber", typeof(string)));
+        dt.Columns.Add(new DataColumn("Column1", typeof(string)));
+        dt.Columns.Add(new DataColumn("Column2", typeof(string)));
+        dt.Columns.Add(new DataColumn("Column3", typeof(string)));
+        dr = dt.NewRow();
+        dr["RowNumber"] = 1;
+        dr["Column1"] = string.Empty;
+        dr["Column2"] = string.Empty;
+        dr["Column3"] = string.Empty;
+        dt.Rows.Add(dr);
+        //dr = dt.NewRow();
+ 
+        //Store the DataTable in ViewState
+        ViewState["CurrentTable"] = dt;
+ 
+        Gridview1.DataSource = dt;
+        Gridview1.DataBind();
+    }
